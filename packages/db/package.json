@@ -1,0 +1,29 @@
+{
+  "name": "@packages/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Drizzle client, schema, and related utilities for Anteater API",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./drizzle": "./src/drizzle.ts",
+    "./schema": "./src/schema.ts",
+    "./utils": "./src/utils.ts"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "check:types": "tsc -p ./tsconfig.json -noEmit",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.35.2",
+    "postgres": "3.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "20.8.3",
+    "dotenv": "16.4.5",
+    "drizzle-kit": "0.26.2"
+  }
+}

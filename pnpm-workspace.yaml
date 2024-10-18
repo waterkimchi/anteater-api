@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "!apps/data-pipeline"
+  - "apps/data-pipeline/*"
+  - "packages/*"
+  - "!packages/public"
+  - "packages/public/*"

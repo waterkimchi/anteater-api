@@ -1,0 +1,23 @@
+{
+  "name": "@icssc/libwebsoc-next",
+  "version": "1.0.0",
+  "description": "A library for safely querying WebSoc and parsing the data into a JS object",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --clean --dts --format esm",
+    "check:types": "tsc -p ./tsconfig.json -noEmit"
+  },
+  "dependencies": {
+    "cross-fetch": "4.0.0",
+    "fast-xml-parser": "4.5.0"
+  },
+  "devDependencies": {
+    "tsup": "8.3.0",
+    "typescript": "5.6.3"
+  }
+}

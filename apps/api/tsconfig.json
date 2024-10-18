@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["./worker-configuration.d.ts", "./.wrangler/types/runtime.d.ts"],
+    "paths": {
+      "$graphql": ["./src/graphql/index.ts"],
+      "$graphql/*": ["./src/graphql/*"],
+      "$hooks": ["./src/hooks/index.ts"],
+      "$middleware": ["./src/middleware/index.ts"],
+      "$rest": ["./src/rest/index.ts"],
+      "$schema": ["./src/schema/index.ts"],
+      "$services": ["./src/services/index.ts"],
+      "$types/*": ["./src/types/*"]
+    }
+  }
+}

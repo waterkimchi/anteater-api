@@ -1,0 +1,14 @@
+{
+  "name": "@packages/stdlib",
+  "version": "0.0.0",
+  "private": true,
+  "description": "'Standard library' utilities used across Anteater API components",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "check:types": "tsc -p ./tsconfig.json -noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "20.8.3"
+  }
+}

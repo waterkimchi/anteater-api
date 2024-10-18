@@ -1,0 +1,30 @@
+{
+  "name": "anteater-api",
+  "version": "2.0.0",
+  "private": true,
+  "description": "The official Anteater API monorepo",
+  "homepage": "https://docs.icssc.club/anteaterapi",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "check:biome": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off",
+    "check:prettier": "prettier --write **/*.md **/*.toml **/*.yml **/*.yaml **/*.json",
+    "check:types": "pnpm -r check:types",
+    "db:generate": "dotenv -- pnpm --filter '@packages/db' generate",
+    "db:migrate": "dotenv -- pnpm --filter '@packages/db' migrate",
+    "db:studio": "dotenv -- pnpm --filter '@packages/db' studio",
+    "deploy": "dotenv -- pnpm -r run deploy",
+    "dev": "dotenv -- pnpm --filter '@apps/api' dev",
+    "postinstall": "lefthook install"
+  },
+  "dependencies": {
+    "@biomejs/biome": "1.9.4",
+    "dotenv-cli": "7.4.2",
+    "lefthook": "1.7.22",
+    "prettier": "3.3.3",
+    "prettier-plugin-packagejson": "2.5.3",
+    "prettier-plugin-toml": "2.0.1",
+    "tsx": "4.19.1",
+    "typescript": "5.6.3"
+  }
+}

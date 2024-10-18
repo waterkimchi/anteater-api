@@ -1,0 +1,14 @@
+name = "anteater-api_larc-scraper"
+compatibility_date = "2024-09-28"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+[triggers]
+crons = ["0 0 * * *"]
+
+[observability]
+enabled = true
+
+[[hyperdrive]]
+binding = "DB"
+id = "c498e76d4f68446ea55d0d92865257b5"

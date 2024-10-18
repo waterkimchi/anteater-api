@@ -1,0 +1,74 @@
+import { defaultHook } from "$hooks";
+import { productionCache } from "$middleware";
+import {
+  errorSchema,
+  responseSchema,
+  websocQuerySchema,
+  websocResponseSchema,
+  websocTermResponseSchema,
+} from "$schema";
+import { WebsocService } from "$services";
+import type { Bindings } from "$types/bindings";
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { database } from "@packages/db";
+
+const websocRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
+
+const websocRoute = createRoute({
+  method: "get",
+  path: "/",
+  description: "Retrieves WebSoc data satisfying the given parameters.",
+  request: { query: websocQuerySchema },
+  responses: {
+    200: {
+      content: { "application/json": { schema: responseSchema(websocResponseSchema) } },
+      description: "Successful operation",
+    },
+    422: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Parameters failed validation",
+    },
+    500: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Server error occurred",
+    },
+  },
+});
+
+const websocTermsRoute = createRoute({
+  method: "get",
+  path: "/terms",
+  description: "Retrieve all terms currently available on WebSoc.",
+  responses: {
+    200: {
+      content: { "application/json": { schema: responseSchema(websocTermResponseSchema.array()) } },
+      description: "Successful operation",
+    },
+    422: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Parameters failed validation",
+    },
+    500: {
+      content: { "application/json": { schema: errorSchema } },
+      description: "Server error occurred",
+    },
+  },
+});
+
+websocRouter.get("*", productionCache({ cacheName: "anteater-api", cacheControl: "max-age=300" }));
+
+websocRouter.openapi(websocRoute, async (c) => {
+  const query = c.req.valid("query");
+  const service = new WebsocService(database(c.env.DB.connectionString, { logger: true }));
+  return c.json(
+    { ok: true, data: websocResponseSchema.parse(await service.getWebsocResponse(query)) },
+    200,
+  );
+});
+
+websocRouter.openapi(websocTermsRoute, async (c) => {
+  const service = new WebsocService(database(c.env.DB.connectionString));
+  return c.json({ ok: true, data: await service.getAllTerms() }, 200);
+});
+
+export { websocRouter };

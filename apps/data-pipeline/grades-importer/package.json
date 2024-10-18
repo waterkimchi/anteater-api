@@ -1,0 +1,19 @@
+{
+  "name": "@apps/grades-importer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Script for importing grades statistics from the Public Records Office",
+  "type": "module",
+  "scripts": {
+    "check:types": "tsc -p ./tsconfig.json -noEmit",
+    "start": "dotenv -e ../../../.env -- tsx src/index.ts"
+  },
+  "dependencies": {
+    "@packages/db": "workspace:*",
+    "@packages/stdlib": "workspace:*",
+    "node-xlsx": "0.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.8.3"
+  }
+}
