@@ -7,6 +7,7 @@ import type { Bindings } from "$types/bindings";
 import { DurableObjectRateLimiter } from "@hono-rate-limiter/cloudflare";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
+import { cors } from "hono/cors";
 
 const app = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
@@ -48,6 +49,7 @@ app.use("/v2/*", headerInjector);
 app.use("/v2/*", keyVerifier);
 app.use("/v2/*", globalRateLimiter);
 app.use("/v2/*", ipBasedRateLimiter);
+app.use("/v2/*", cors());
 app.route("/v2/rest", restRouter);
 app.route("/v2/graphql", graphqlRouter);
 
