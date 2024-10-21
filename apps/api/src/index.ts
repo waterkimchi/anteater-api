@@ -16,7 +16,7 @@ app.doc("/openapi.json", {
   info: { version: "2.0.0", title: "Anteater API" },
   servers: [
     {
-      url: "https://anteaterapi.com/",
+      url: "https://anteaterapi.com",
     },
   ],
   tags: [
