@@ -11,16 +11,25 @@ import type { Bindings } from "$types/bindings";
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { database } from "@packages/db";
 
-const enrollmentHistoryRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
+const enrollmentHistoryRouter = new OpenAPIHono<{ Bindings: Bindings }>({
+  defaultHook,
+});
 
 const enrollmentHistoryRoute = createRoute({
+  summary: "Filter enrollment history",
+  operationId: "enrollmentHistory",
+  tags: ["Enrollment History"],
   method: "get",
   path: "/",
   request: { query: enrollmentHistoryQuerySchema },
   description: "Retrieves historical enrollment data for the given parameters.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(enrollmentHistorySchema.array()) } },
+      content: {
+        "application/json": {
+          schema: responseSchema(enrollmentHistorySchema.array()),
+        },
+      },
       description: "Successful operation",
     },
     422: {

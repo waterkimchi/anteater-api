@@ -9,13 +9,18 @@ import { database } from "@packages/db";
 const calendarRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
 const calendarTermRoute = createRoute({
+  summary: "Retrieve term calendar",
+  operationId: "calendarTerm",
+  tags: ["Calendar"],
   method: "get",
   path: "/",
   request: { query: calendarQuerySchema },
   description: "Retrieves key dates for the provided term.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(calendarTermSchema) } },
+      content: {
+        "application/json": { schema: responseSchema(calendarTermSchema) },
+      },
       description: "Successful operation",
     },
     404: {
@@ -34,12 +39,19 @@ const calendarTermRoute = createRoute({
 });
 
 const allCalendarTermsRoute = createRoute({
+  summary: "List all calendars",
+  operationId: "allCalendarTerms",
+  tags: ["Calendar"],
   method: "get",
   path: "/all",
   description: "Retrieves all data for all terms that are currently available.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(calendarTermSchema.array()) } },
+      content: {
+        "application/json": {
+          schema: responseSchema(calendarTermSchema.array()),
+        },
+      },
       description: "Successful operation",
     },
     500: {
@@ -60,7 +72,13 @@ calendarRouter.openapi(calendarTermRoute, async (c) => {
   const res = await service.getCalendarTerm(query);
   return res
     ? c.json({ ok: true, data: calendarTermSchema.parse(res) }, 200)
-    : c.json({ ok: false, message: `Term ${query.year} ${query.quarter} not found` }, 404);
+    : c.json(
+        {
+          ok: false,
+          message: `Term ${query.year} ${query.quarter} not found`,
+        },
+        404,
+      );
 });
 
 calendarRouter.openapi(allCalendarTermsRoute, async (c) => {

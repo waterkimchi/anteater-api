@@ -8,6 +8,9 @@ import { database } from "@packages/db";
 const weekRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
 const weekRoute = createRoute({
+  summary: "Retrieve current week",
+  operationId: "week",
+  tags: ["Calendar"],
   method: "get",
   path: "/",
   request: { query: weekQuerySchema },
@@ -34,7 +37,13 @@ weekRouter.openapi(weekRoute, async (c) => {
   const res = await service.getWeekData(query);
   return res
     ? c.json({ ok: true, data: weekSchema.parse(res) }, 200)
-    : c.json({ ok: false, message: "Something unexpected happened. Please try again later" }, 500);
+    : c.json(
+        {
+          ok: false,
+          message: "Something unexpected happened. Please try again later",
+        },
+        500,
+      );
 });
 
 export { weekRouter };

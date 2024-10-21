@@ -12,15 +12,24 @@ import type { Bindings } from "$types/bindings";
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { database } from "@packages/db";
 
-const instructorsRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
+const instructorsRouter = new OpenAPIHono<{ Bindings: Bindings }>({
+  defaultHook,
+});
 
 const allInstructorsRoute = createRoute({
+  summary: "List Instructors",
+  operationId: "allInstructors",
+  tags: ["Instructors"],
   method: "get",
   path: "/all",
   description: "Retrieves all instructors.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(instructorSchema.array()) } },
+      content: {
+        "application/json": {
+          schema: responseSchema(instructorSchema.array()),
+        },
+      },
       description: "Successful operation",
     },
     500: {
@@ -31,13 +40,18 @@ const allInstructorsRoute = createRoute({
 });
 
 const instructorByIdRoute = createRoute({
+  summary: "Retrieve a instructor",
+  operationId: "instructorById",
+  tags: ["Instructors"],
   method: "get",
   path: "/{ucinetid}",
   request: { params: instructorsPathSchema },
   description: "Retrieves an instructor by their UCInetID.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(instructorSchema) } },
+      content: {
+        "application/json": { schema: responseSchema(instructorSchema) },
+      },
       description: "Successful operation",
     },
     404: {
@@ -56,13 +70,20 @@ const instructorByIdRoute = createRoute({
 });
 
 const instructorsByFiltersRoute = createRoute({
+  summary: "Filter instructors",
+  operationId: "instructorsByFilters",
+  tags: ["Instructors"],
   method: "get",
   path: "/",
   request: { query: instructorsQuerySchema },
   description: "Retrieves instructors matching the given filters.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(instructorSchema.array()) } },
+      content: {
+        "application/json": {
+          schema: responseSchema(instructorSchema.array()),
+        },
+      },
       description: "Successful operation",
     },
     422: {

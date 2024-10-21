@@ -15,13 +15,18 @@ import { database } from "@packages/db";
 const websocRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
 const websocRoute = createRoute({
+  summary: "Query WebSoc",
+  operationId: "websoc",
+  tags: ["WebSoc"],
   method: "get",
   path: "/",
   description: "Retrieves WebSoc data satisfying the given parameters.",
   request: { query: websocQuerySchema },
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(websocResponseSchema) } },
+      content: {
+        "application/json": { schema: responseSchema(websocResponseSchema) },
+      },
       description: "Successful operation",
     },
     422: {
@@ -36,12 +41,19 @@ const websocRoute = createRoute({
 });
 
 const websocTermsRoute = createRoute({
+  summary: "List available WebSoc terms",
+  operationId: "websocTerms",
+  tags: ["WebSoc"],
   method: "get",
   path: "/terms",
   description: "Retrieve all terms currently available on WebSoc.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(websocTermResponseSchema.array()) } },
+      content: {
+        "application/json": {
+          schema: responseSchema(websocTermResponseSchema.array()),
+        },
+      },
       description: "Successful operation",
     },
     422: {
@@ -61,7 +73,10 @@ websocRouter.openapi(websocRoute, async (c) => {
   const query = c.req.valid("query");
   const service = new WebsocService(database(c.env.DB.connectionString, { logger: true }));
   return c.json(
-    { ok: true, data: websocResponseSchema.parse(await service.getWebsocResponse(query)) },
+    {
+      ok: true,
+      data: websocResponseSchema.parse(await service.getWebsocResponse(query)),
+    },
     200,
   );
 });

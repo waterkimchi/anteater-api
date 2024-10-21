@@ -18,13 +18,18 @@ import { database } from "@packages/db";
 const gradesRouter = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
 const rawGradesRoute = createRoute({
+  summary: "Filter grades",
+  operationId: "rawGrades",
+  tags: ["Grades"],
   method: "get",
   path: "/raw",
   request: { query: gradesQuerySchema },
   description: "Retrieves raw grades data for the given parameters.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(rawGradeSchema.array()) } },
+      content: {
+        "application/json": { schema: responseSchema(rawGradeSchema.array()) },
+      },
       description: "Successful operation",
     },
     422: {
@@ -39,13 +44,18 @@ const rawGradesRoute = createRoute({
 });
 
 const gradesOptionsRoute = createRoute({
+  summary: "Filter grade options",
+  operationId: "gradesOptions",
+  tags: ["Grades"],
   method: "get",
   path: "/options",
   request: { query: gradesQuerySchema },
   description: "Retrieves a set of further possible filters for the given parameters.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(gradesOptionsSchema) } },
+      content: {
+        "application/json": { schema: responseSchema(gradesOptionsSchema) },
+      },
       description: "Successful operation",
     },
     422: {
@@ -60,6 +70,9 @@ const gradesOptionsRoute = createRoute({
 });
 
 const aggregateGradesRoute = createRoute({
+  summary: "Retrieve grade aggregate",
+  operationId: "aggregateGrades",
+  tags: ["Grades"],
   method: "get",
   path: "/aggregate",
   request: { query: gradesQuerySchema },
@@ -67,7 +80,9 @@ const aggregateGradesRoute = createRoute({
     "Retrieves grades aggregated by section and the set of sections that are included in this aggregation.",
   responses: {
     200: {
-      content: { "application/json": { schema: responseSchema(aggregateGradesSchema) } },
+      content: {
+        "application/json": { schema: responseSchema(aggregateGradesSchema) },
+      },
       description: "Successful operation",
     },
     422: {
@@ -82,6 +97,9 @@ const aggregateGradesRoute = createRoute({
 });
 
 const aggregateGradesByCourseRoute = createRoute({
+  summary: "Retrieve grade aggregate by course",
+  operationId: "aggregateGradesByCourse",
+  tags: ["Grades"],
   method: "get",
   path: "/aggregateByCourse",
   request: { query: gradesQuerySchema },
@@ -90,7 +108,9 @@ const aggregateGradesByCourseRoute = createRoute({
   responses: {
     200: {
       content: {
-        "application/json": { schema: responseSchema(aggregateGradeByCourseSchema.array()) },
+        "application/json": {
+          schema: responseSchema(aggregateGradeByCourseSchema.array()),
+        },
       },
       description: "Successful operation",
     },
@@ -106,6 +126,9 @@ const aggregateGradesByCourseRoute = createRoute({
 });
 
 const aggregateGradesByOfferingRoute = createRoute({
+  summary: "Retrieve grade aggregate by offering",
+  operationId: "aggregateGradesByOffering",
+  tags: ["Grades"],
   method: "get",
   path: "/aggregateByOffering",
   request: { query: gradesQuerySchema },
@@ -114,7 +137,9 @@ const aggregateGradesByOfferingRoute = createRoute({
   responses: {
     200: {
       content: {
-        "application/json": { schema: responseSchema(aggregateGradeByOfferingSchema.array()) },
+        "application/json": {
+          schema: responseSchema(aggregateGradeByOfferingSchema.array()),
+        },
       },
       description: "Successful operation",
     },
@@ -138,7 +163,10 @@ gradesRouter.openapi(rawGradesRoute, async (c) => {
   const query = c.req.valid("query");
   const service = new GradesService(database(c.env.DB.connectionString));
   return c.json(
-    { ok: true, data: rawGradeSchema.array().parse(await service.getRawGrades(query)) },
+    {
+      ok: true,
+      data: rawGradeSchema.array().parse(await service.getRawGrades(query)),
+    },
     200,
   );
 });

@@ -10,7 +10,19 @@ import { apiReference } from "@scalar/hono-api-reference";
 
 const app = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
-app.doc("/openapi.json", { openapi: "3.0.0", info: { version: "2.0.0", title: "Anteater API" } });
+app.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: { version: "2.0.0", title: "Anteater API" },
+  tags: [
+    { name: "WebSoc" },
+    { name: "Grades" },
+    { name: "Courses" },
+    { name: "Enrollment History" },
+    { name: "Instructors" },
+    { name: "Calendar" },
+    { name: "Other" },
+  ],
+});
 app.get("/docs", apiReference({ spec: { url: "/openapi.json" } }));
 app.onError((err, c) =>
   c.json<ErrorSchema>(
@@ -19,7 +31,13 @@ app.onError((err, c) =>
   ),
 );
 app.notFound((c) =>
-  c.json<ErrorSchema>({ ok: false, message: "The requested resource could not be found." }, 404),
+  c.json<ErrorSchema>(
+    {
+      ok: false,
+      message: "The requested resource could not be found.",
+    },
+    404,
+  ),
 );
 app.use("/v2/*", headerInjector);
 app.use("/v2/*", keyVerifier);
