@@ -13,6 +13,11 @@ const app = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: { version: "2.0.0", title: "Anteater API" },
+  servers: [
+    {
+      url: "https://anteaterapi.com/",
+    },
+  ],
   tags: [
     { name: "WebSoc" },
     { name: "Grades" },
