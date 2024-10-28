@@ -7,8 +7,8 @@ import type {
 } from "$schema";
 import { outputGECategories } from "$schema";
 import type { database } from "@packages/db";
+import type { SQL } from "@packages/db/drizzle";
 import {
-  type SQL,
   aliasedTable,
   and,
   eq,

@@ -68,15 +68,15 @@ export const coursesQuerySchema = z.object({
 });
 
 export const prerequisiteTreeSchema = z.object({
-  AND: z.object({}).array().optional().openapi({
+  AND: z.any().array().optional().openapi({
     description:
       "All of these prerequisites must have been fulfilled before this course can be taken.",
   }),
-  OR: z.object({}).array().optional().openapi({
+  OR: z.any().array().optional().openapi({
     description:
       "At least one of these prerequisites must have been fulfilled before this course can be taken.",
   }),
-  NOT: z.object({}).array().optional().openapi({
+  NOT: z.any().array().optional().openapi({
     description:
       "None of these prerequisites must have been fulfilled before this course can be taken.",
   }),
