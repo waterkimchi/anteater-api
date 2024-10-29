@@ -8,6 +8,7 @@ import { DurableObjectRateLimiter } from "@hono-rate-limiter/cloudflare";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { cors } from "hono/cors";
+import { html } from "hono/html";
 
 const app = new OpenAPIHono<{ Bindings: Bindings }>({ defaultHook });
 
@@ -62,25 +63,31 @@ app.get("/docs", (c) => {
 
 const ogTitle = "API Reference | Anteater API";
 const ogDescription = "API Reference for Anteater API, the unified API for UCI related data.";
-app.get(
-  "/reference",
-  apiReference({
-    spec: { url: "/openapi.json" },
-    pageTitle: ogTitle,
-    metaData: {
-      title: ogTitle,
-      description: ogDescription,
-      ogDescription: ogDescription,
-      ogTitle: ogTitle,
-      ogImage: "https://anteaterapi.com/og.jpg",
-      twitterTitle: ogTitle,
-      twitterDescription: ogDescription,
-      twitterImage: "https://anteaterapi.com/og.jpg",
-      twitterCard: "summary_large_image",
-    },
-    favicon: "/favicon.svg",
-  }),
-);
+const ogImage = "https://anteaterapi.com/og.jpg";
+app
+  .use("/reference", async (c, next) => {
+    await next();
+    const body = await c.res.text();
+    const index = body.indexOf("<head>") + 6;
+    const meta = html`
+    <meta name="description" content="${ogDescription}">
+    <meta property="og:title" content="${ogTitle}">
+    <meta property="og:description" content="${ogDescription}">
+    <meta property="og:image" content="${ogImage}">
+    <meta name="twitter:title" content="${ogTitle}">
+    <meta name="twitter:description" content="${ogDescription}">
+    <meta name="twitter:image" content="${ogImage}">
+    <meta name="twitter:card" content="summary_large_image">`;
+    c.res = new Response(body.slice(0, index) + meta + body.slice(index), c.res);
+  })
+  .get(
+    "/reference",
+    apiReference({
+      spec: { url: "/openapi.json" },
+      pageTitle: ogTitle,
+      favicon: "/favicon.svg",
+    }),
+  );
 app.onError((err, c) =>
   c.json<ErrorSchema>(
     { ok: false, message: err.message.replaceAll(/"/g, "'") },
