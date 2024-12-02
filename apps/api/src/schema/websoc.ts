@@ -2,7 +2,7 @@ import { z } from "@hono/zod-openapi";
 import type { FinalExamStatus } from "@packages/db/schema";
 import { courseLevels, terms, websocSectionTypes, websocStatuses } from "@packages/db/schema";
 import { isBaseTenInt } from "@packages/stdlib";
-import { courseNumberSchema, timeSchema } from "./lib";
+import { courseNumberSchema, daysSchema, timeSchema } from "./lib";
 
 const anyArray = ["ANY"] as const;
 
@@ -119,7 +119,7 @@ export const websocQuerySchema = z.object({
       return parsedNums;
     }),
   instructorName: z.string().optional(),
-  days: courseNumberSchema.optional(),
+  days: daysSchema.optional(),
   building: z.string().optional(),
   room: z.string().optional(),
   division: z

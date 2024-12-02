@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "check:types": "tsc -p './tsconfig.json' -noEmit",
     "deploy": "dotenv -- sst deploy --stage production",
     "dev": "next dev --turbopack",
     "generate": "drizzle-kit generate",
