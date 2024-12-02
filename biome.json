@@ -8,10 +8,14 @@
   "files": {
     "ignoreUnknown": false,
     "ignore": [
-      "dist/**",
+      "**/*.md",
+      "**/*.toml",
+      "**/*.yml",
+      "**/*.yaml",
+      "**/*.json",
       "**/.next/**",
-      "**/.worker-next/**",
-      "**/migrations/meta/*.json"
+      "**/.sst/**",
+      "**/dist/**"
     ]
   },
   "formatter": {
