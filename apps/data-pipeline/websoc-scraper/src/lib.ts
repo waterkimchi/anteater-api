@@ -29,6 +29,7 @@ import {
 } from "@packages/db/schema";
 import { conflictUpdateSetAllCols } from "@packages/db/utils";
 import { baseTenIntOrNull, intersectAll, notNull, sleep } from "@packages/stdlib";
+import { parseMeetingDays, parseStartAndEndTimes } from "@packages/stdlib";
 import { load } from "cheerio";
 
 export async function getDepts(db: ReturnType<typeof database>) {
@@ -128,25 +129,6 @@ function courseMapper(
     schoolName,
     updatedAt,
   };
-}
-
-function parseStartAndEndTimes(time: string) {
-  let startTime: number;
-  let endTime: number;
-  const [startTimeString, endTimeString] = time
-    .trim()
-    .split("-")
-    .map((x) => x.trim());
-  const [startTimeHour, startTimeMinute] = startTimeString.split(":");
-  startTime = (Number.parseInt(startTimeHour, 10) % 12) * 60 + Number.parseInt(startTimeMinute, 10);
-  const [endTimeHour, endTimeMinute] = endTimeString.split(":");
-  endTime = (Number.parseInt(endTimeHour, 10) % 12) * 60 + Number.parseInt(endTimeMinute, 10);
-  if (endTimeMinute.includes("p")) {
-    startTime += 12 * 60;
-    endTime += 12 * 60;
-  }
-  if (startTime > endTime) startTime -= 12 * 60;
-  return { startTime, endTime };
 }
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -344,7 +326,14 @@ function meetingMapper(
   meetingIndex: number,
   updatedAt: Date,
 ): typeof websocSectionMeeting.$inferInsert {
-  const res: typeof websocSectionMeeting.$inferInsert = {
+  const { startTime, endTime } =
+    meeting.time.trim() !== "TBA"
+      ? parseStartAndEndTimes(meeting.time)
+      : { startTime: undefined, endTime: undefined };
+
+  const meetingDays = parseMeetingDays(meeting.days);
+
+  return {
     ...term,
     timeString: meeting.time,
     daysString: meeting.days,
@@ -352,37 +341,13 @@ function meetingMapper(
     sectionCode,
     meetingIndex,
     updatedAt,
+    ...(startTime !== undefined &&
+      endTime !== undefined && {
+        startTime: new Date(startTime * 60 * 1000),
+        endTime: new Date(endTime * 60 * 1000),
+      }),
+    ...meetingDays,
   };
-  if (meeting.time.trim() === "TBA") return res;
-  const { startTime, endTime } = parseStartAndEndTimes(meeting.time);
-  res.startTime = new Date(startTime * 60 * 1000);
-  res.endTime = new Date(endTime * 60 * 1000);
-  for (const day of meeting.days.split(/([A-Z][a-z]?)/).filter((x) => x)) {
-    switch (day) {
-      case "M":
-        res.meetsMonday = true;
-        break;
-      case "Tu":
-        res.meetsTuesday = true;
-        break;
-      case "W":
-        res.meetsWednesday = true;
-        break;
-      case "Th":
-        res.meetsThursday = true;
-        break;
-      case "F":
-        res.meetsFriday = true;
-        break;
-      case "Sa":
-        res.meetsSaturday = true;
-        break;
-      case "Su":
-        res.meetsSunday = true;
-        break;
-    }
-  }
-  return res;
 }
 
 const doDepartmentUpsert = async (
