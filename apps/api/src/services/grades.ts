@@ -1,6 +1,6 @@
 import type { aggregateGradesSchema, gradesQuerySchema, rawGradeSchema } from "$schema";
 import type { database } from "@packages/db";
-import { and, avg, eq, gt, gte, inArray, lte, or, sum } from "@packages/db/drizzle";
+import { and, avg, eq, gt, gte, inArray, lte, or, sql, sum } from "@packages/db/drizzle";
 import {
   websocCourse,
   websocSection,
@@ -9,8 +9,6 @@ import {
 } from "@packages/db/schema";
 import { isTrue } from "@packages/db/utils";
 import type { z } from "zod";
-
-const toNumberOrZero = (x: unknown) => Number(x) ?? 0;
 
 type GradesServiceInput = z.infer<typeof gradesQuerySchema>;
 
@@ -103,7 +101,7 @@ export class GradesService {
   constructor(private readonly db: ReturnType<typeof database>) {}
 
   async getRawGrades(input: GradesServiceInput) {
-    const data = await this.db
+    return this.db
       .select({
         id: websocSection.id,
         year: websocSection.year,
@@ -131,45 +129,46 @@ export class GradesService {
         gradeNPCount: websocSectionGrade.gradeNPCount,
         gradeWCount: websocSectionGrade.gradeWCount,
         averageGPA: websocSectionGrade.averageGPA,
-        instructor: websocSectionToInstructor.instructorName,
+        instructors: websocSection.instructors,
       })
       .from(websocCourse)
       .innerJoin(websocSection, eq(websocSection.courseId, websocCourse.id))
       .innerJoin(websocSectionGrade, eq(websocSectionGrade.sectionId, websocSection.id))
-      .innerJoin(
+      .leftJoin(
         websocSectionToInstructor,
         eq(websocSection.id, websocSectionToInstructor.sectionId),
       )
       .where(buildQuery(input))
       .then((rows) =>
-        rows.reduce((acc, row) => {
-          if (acc.has(row.id)) {
-            acc.get(row.id)?.instructors.push(row.instructor);
-            return acc;
-          }
-          return acc.set(row.id, {
-            ...row,
-            averageGPA: row.averageGPA ? Number.parseFloat(row.averageGPA) : null,
-            sectionCode: row.sectionCode.toString(10).padStart(5, "0"),
-            geCategories: (
-              [
-                row.isGE1A && "GE-1A",
-                row.isGE1B && "GE-1B",
-                row.isGE2 && "GE-2",
-                row.isGE3 && "GE-3",
-                row.isGE4 && "GE-4",
-                row.isGE5A && "GE-5A",
-                row.isGE5B && "GE-5B",
-                row.isGE6 && "GE-6",
-                row.isGE7 && "GE-7",
-                row.isGE8 && "GE-8",
-              ] as const
-            ).filter((x) => x !== false),
-            instructors: [row.instructor],
-          });
-        }, new Map<string, z.infer<typeof rawGradeSchema>>()),
+        rows
+          .reduce(
+            (acc, row) =>
+              acc.has(row.id)
+                ? acc
+                : acc.set(row.id, {
+                    ...row,
+                    averageGPA: row.averageGPA ? Number.parseFloat(row.averageGPA) : null,
+                    sectionCode: row.sectionCode.toString(10).padStart(5, "0"),
+                    geCategories: (
+                      [
+                        row.isGE1A && "GE-1A",
+                        row.isGE1B && "GE-1B",
+                        row.isGE2 && "GE-2",
+                        row.isGE3 && "GE-3",
+                        row.isGE4 && "GE-4",
+                        row.isGE5A && "GE-5A",
+                        row.isGE5B && "GE-5B",
+                        row.isGE6 && "GE-6",
+                        row.isGE7 && "GE-7",
+                        row.isGE8 && "GE-8",
+                      ] as const
+                    ).filter((x) => x !== false),
+                  }),
+            new Map<string, z.infer<typeof rawGradeSchema>>(),
+          )
+          .values()
+          .toArray(),
       );
-    return data.values().toArray();
   }
 
   async getGradesOptions(input: GradesServiceInput) {
@@ -183,7 +182,7 @@ export class GradesService {
       .from(websocCourse)
       .innerJoin(websocSection, eq(websocSection.courseId, websocCourse.id))
       .innerJoin(websocSectionGrade, eq(websocSectionGrade.sectionId, websocSection.id))
-      .innerJoin(
+      .leftJoin(
         websocSectionToInstructor,
         eq(websocSection.id, websocSectionToInstructor.sectionId),
       )
@@ -194,7 +193,7 @@ export class GradesService {
             acc.years.add(row.year);
             acc.departments.add(row.department);
             acc.sectionCodes.add(row.sectionCode.toString(10).padStart(5, "0"));
-            acc.instructors.add(row.instructor);
+            row.instructor && acc.instructors.add(row.instructor);
             return acc;
           },
           {
@@ -223,6 +222,7 @@ export class GradesService {
         department: websocCourse.deptCode,
         courseNumber: websocCourse.courseNumber,
         courseNumeric: websocCourse.courseNumeric,
+        instructors: websocSection.instructors,
         isGE1A: websocCourse.isGE1A,
         isGE1B: websocCourse.isGE1B,
         isGE2: websocCourse.isGE2,
@@ -233,42 +233,40 @@ export class GradesService {
         isGE6: websocCourse.isGE6,
         isGE7: websocCourse.isGE7,
         isGE8: websocCourse.isGE8,
-        instructor: websocSectionToInstructor.instructorName,
       })
       .from(websocCourse)
       .innerJoin(websocSection, eq(websocSection.courseId, websocCourse.id))
       .innerJoin(websocSectionGrade, eq(websocSectionGrade.sectionId, websocSection.id))
-      .innerJoin(
+      .leftJoin(
         websocSectionToInstructor,
         eq(websocSection.id, websocSectionToInstructor.sectionId),
       )
       .where(buildQuery(input))
       .then((rows) =>
-        rows.reduce((acc, row) => {
-          if (acc.has(row.id)) {
-            acc.get(row.id)?.instructors.push(row.instructor);
-            return acc;
-          }
-          return acc.set(row.id, {
-            ...row,
-            sectionCode: row.sectionCode.toString(10).padStart(5, "0"),
-            geCategories: (
-              [
-                row.isGE1A && "GE-1A",
-                row.isGE1B && "GE-1B",
-                row.isGE2 && "GE-2",
-                row.isGE3 && "GE-3",
-                row.isGE4 && "GE-4",
-                row.isGE5A && "GE-5A",
-                row.isGE5B && "GE-5B",
-                row.isGE6 && "GE-6",
-                row.isGE7 && "GE-7",
-                row.isGE8 && "GE-8",
-              ] as const
-            ).filter((x) => x !== false),
-            instructors: [row.instructor],
-          });
-        }, new Map<string, z.infer<typeof aggregateGradesSchema>["sectionList"][number]>()),
+        rows.reduce(
+          (acc, row) =>
+            acc.has(row.id)
+              ? acc
+              : acc.set(row.id, {
+                  ...row,
+                  sectionCode: row.sectionCode.toString(10).padStart(5, "0"),
+                  geCategories: (
+                    [
+                      row.isGE1A && "GE-1A",
+                      row.isGE1B && "GE-1B",
+                      row.isGE2 && "GE-2",
+                      row.isGE3 && "GE-3",
+                      row.isGE4 && "GE-4",
+                      row.isGE5A && "GE-5A",
+                      row.isGE5B && "GE-5B",
+                      row.isGE6 && "GE-6",
+                      row.isGE7 && "GE-7",
+                      row.isGE8 && "GE-8",
+                    ] as const
+                  ).filter((x) => x !== false),
+                }),
+          new Map<string, z.infer<typeof aggregateGradesSchema>["sectionList"][number]>(),
+        ),
       );
     if (!sectionMapping.size)
       return {
@@ -332,7 +330,7 @@ export class GradesService {
       .select({
         department: websocCourse.deptCode,
         courseNumber: websocCourse.courseNumber,
-        instructor: websocSectionToInstructor.instructorName,
+        instructor: sql<string>`COALESCE(${websocSectionToInstructor.instructorName}, 'STAFF')`,
         gradeACount: sum(websocSectionGrade.gradeACount).mapWith(Number),
         gradeBCount: sum(websocSectionGrade.gradeBCount).mapWith(Number),
         gradeCCount: sum(websocSectionGrade.gradeCCount).mapWith(Number),
@@ -346,7 +344,7 @@ export class GradesService {
       .from(websocCourse)
       .innerJoin(websocSection, eq(websocSection.courseId, websocCourse.id))
       .innerJoin(websocSectionGrade, eq(websocSectionGrade.sectionId, websocSection.id))
-      .innerJoin(
+      .leftJoin(
         websocSectionToInstructor,
         eq(websocSection.id, websocSectionToInstructor.sectionId),
       )
